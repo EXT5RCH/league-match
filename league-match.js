@@ -1,4 +1,8 @@
-const STDOUT_CYCLE = 50;
+const STDOUT_CYCLE = 30;
+
+const red = "\u001b[31m";
+const green = "\u001b[32m";
+const reset = "\u001b[0m";
 
 const leagueMatch = (teamsCount) => {
   const maxNumberOfDigits = (teamsCount - 1).toString().length;
@@ -11,27 +15,27 @@ const leagueMatch = (teamsCount) => {
     );
   const totalSection = teamsCount % 2 ? teamsCount + 1 : teamsCount;
   for (let section = 1; section < totalSection; section++) {
+    let home = section % 2 ? 0 : section;
+    let away = section % 2 ? section : 0;
+    const baseTeamNo = section;
     strSection = section.toString().padStart(maxNumberOfDigits, " ");
-    let team1 = 0;
-    let team2 = section;
-    const baseTeamNo = team2;
     if (section < teamsCount) {
-      table[team1][team2] = strSection;
-      table[team2][team1] = strSection;
+      table[home][away] = homeTeam(strSection);
+      table[away][home] = awayTeam(strSection);
     }
     const remainingTeamsCount = totalSection - 2;
     for (let i = 0; i < remainingTeamsCount / 2; i++) {
-      team1 =
+      home =
         baseTeamNo + 1 + i > totalSection - 1
           ? baseTeamNo + 2 + i - totalSection
           : baseTeamNo + 1 + i;
-      team2 =
+      away =
         baseTeamNo + remainingTeamsCount - i > totalSection - 1
           ? baseTeamNo + remainingTeamsCount - i - totalSection + 1
           : baseTeamNo + remainingTeamsCount - i;
-      if (Math.max(team1, team2) < teamsCount) {
-        table[team1][team2] = strSection;
-        table[team2][team1] = strSection;
+      if (Math.max(home, away) < teamsCount) {
+        table[home][away] = homeTeam(strSection);
+        table[away][home] = awayTeam(strSection);
       }
     }
   }
@@ -63,6 +67,14 @@ const validation = (argv) => {
   return true;
 };
 
+const homeTeam = (team) => {
+  return `${green}${team}${reset}`;
+};
+
+const awayTeam = (team) => {
+  return `${red}${team}${reset}`;
+};
+
 const stdout = (table, startTime, stream) => {
   if (stream) {
     let textMessage = "";
@@ -90,11 +102,11 @@ const stdout = (table, startTime, stream) => {
 };
 
 (() => {
-  const startTime = performance.now();
   const argv = process.argv;
   if (!validation(argv)) return;
   const teamsCount = Number(argv[2]);
   const stream = argv.length === 4 && argv[3] == "--stream";
+  const startTime = performance.now();
   const table = leagueMatch(teamsCount);
   stdout(table, startTime, stream);
 })();
